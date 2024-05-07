@@ -1,6 +1,10 @@
+
 from tkinter import * 
 from tkinter import messagebox
 from PIL import Image, ImageTk
+
+master = Tk()
+master.geometry("400x300+200+50")
 
 class FontSizeAdjuster:
     def __init__(self, root, widgets):
@@ -109,50 +113,25 @@ def home_window():
             bill_button.image = note200_image  # Keep a reference to the image
             bill_button.pack(side=RIGHT)
         else:
-            root = Toplevel(home)
-            def on_drag_start(event):
-                # Set the data to be dragged (in this case, the widget ID)
-                event.widget.start_drag(event.x_root, event.y_root)
-                return 'break'
+            card_window = Toplevel(home)
+            card_window.title("Card Payment")
 
-            def on_drag_motion(event):
-                # Update the position of the dragged widget
-                event.widget.place(x=event.x_root, y=event.y_root, anchor='nw')
-                return 'break'
+            # Create a Canvas widget to simulate card movement
+            canvas = Canvas(card_window, width=400, height=400, bg="white")
+            canvas.pack()
 
-            def on_drag_end(event):
-                # Check if the dragged widget is over the card reader
-                reader_coords = root.bbox(reader)
-                if reader_coords[0] <= event.x_root <= reader_coords[2] and reader_coords[1] <= event.y_root <= reader_coords[3]:
-                    # Display a payment successful message
-                    payment_label.place(relx=0.5, rely=0.5, anchor='center')
-                else:
-                    # Return the dragged widget to its original position
-                    event.widget.place(x=event.widget.drag_start_x, y=event.widget.drag_start_y, anchor='nw')
-                return 'break'
+            def on_drag(event):
+                canvas.coords(card, event.x - 25, event.y - 25, event.x + 25, event.y + 25)
 
-            # Create a card reader
-            reader = Label(root, text="Card Reader", relief="ridge", width=15, height=5)
-            reader.place(x=300, y=50, anchor='nw')
+            def on_drop(event):
+                total = calculate_amount(sleeper_choice, passengers)
+                messagebox.showinfo("Card Payment", f"Amount paid: ₹{total}")
 
-            # Create a credit card image
-            card_image = PhotoImage(file="credit_card.png")
-            card = Label(root, image=card_image, relief="ridge", width=100, height=60)
-            card.place(x=50, y=250, anchor='nw')
+            card = canvas.create_rectangle(175, 175, 225, 225, fill="blue", tags="card")
+            canvas.tag_bind("card", "<B1-Motion>", on_drag)
+            canvas.tag_bind("card", "<ButtonRelease-1>", on_drop)
 
-            # Create a label for the payment message
-            payment_label = Label(root, text="Payment Successful!", font=("Helvetica", 16), bg="green", fg="white")
-
-            # Bind events for dragging the card
-            card.bind("<Button-1>", on_drag_start)
-            card.bind("<B1-Motion>", on_drag_motion)
-            card.bind("<ButtonRelease-1>", on_drag_end)
-
-
-
-
-
-    home = Tk()
+    home = Toplevel(master)
     home.geometry("700x600+500+100")
     home.title("Book tickets")
 
@@ -296,6 +275,54 @@ def home_window():
 ]
     font_size_adjuster = FontSizeAdjuster(home, widgets_to_adjust)
 
-    mainloop()
 
-home_window()
+    
+def check_login():        
+    credentials = (("fire", "password1"), ("water", "password2"))
+    userID = username_input.get()
+    password = password_input.get()
+
+    user = []
+    user.append(userID)
+    user.append(password)
+
+    user = tuple(user)
+
+    if user in credentials:
+        status = "Successful"
+        message = "You have successfully logged in to your account"
+        home_window()
+        master.destroy
+    else:
+        status = "Unsuccessful"
+        message = "You have entered the wrong UserId and/or password"
+
+    messagebox.showinfo(status, message)
+
+    
+
+master.config(bg="#e29c82")
+master.title("Railway ticket booking")
+
+label_color = "#000000"
+font_style = ('Arial', 12, 'bold') 
+
+title_label = Label(master, text="Railways booking", fg="green", bg="#e29c82", font=('Arial', 16))
+title_label.place(x=150, y=25)
+
+Label(master, text="Login", bg="#e29c82", fg=label_color, font=font_style).place(x=150, y=50)
+
+username_label = Label(master, text='Username', bg="#e29c82", fg=label_color, font=font_style)
+username_label.place(x=50, y=100)
+username_input = Entry(master)
+username_input.place(x=150, y=100)    
+
+password_label = Label(master, text='Password', bg="#e29c82", fg=label_color, font=font_style)
+password_label.place(x=50, y=130)
+password_input = Entry(master, show="*")
+password_input.place(x=150, y=130)
+
+Button(master, text='Submit', width=25, command=check_login).place(x=150, y=200)
+Button(master, text='Stop', width=25, command=master.destroy).place(x=150, y=230)
+
+mainloop()
